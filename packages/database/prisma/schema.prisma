@@ -1,0 +1,422 @@
+// DeUna — schema conceptual completo (sección 5 del documento de arquitectura).
+// Product vs ProductOffer están separados a propósito: el mismo producto puede tener
+// varios precios/inventarios según el merchant que lo vende.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum UserRole {
+  CUSTOMER
+  MERCHANT
+  DRIVER
+  ADMIN
+}
+
+enum OrderStatus {
+  ORDER_PLACED
+  MERCHANT_ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  DRIVER_ASSIGNED
+  PICKED_UP
+  ON_THE_WAY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum AgeVerificationMethod {
+  SELF_DECLARED
+  EXTERNAL_PROVIDER
+  DELIVERY_CONFIRMED
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_DELIVERY
+  BUY_X_GET_Y
+}
+
+enum MerchantStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum VehicleType {
+  MOTORCYCLE
+  CAR
+  BICYCLE
+  ON_FOOT
+}
+
+// ---------- Identity ----------
+
+model User {
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  phone         String?   @unique
+  passwordHash  String?
+  role          UserRole  @default(CUSTOMER)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  customerProfile CustomerProfile?
+  merchant        Merchant?
+  driver          Driver?
+  addresses       Address[]
+  notifications   Notification[]
+  ageVerification AgeVerification?
+  reviewsGiven    Review[]          @relation("ReviewAuthor")
+
+  @@index([role])
+}
+
+model CustomerProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String
+  dateOfBirth DateTime?
+  createdAt   DateTime @default(now())
+
+  carts  Cart[]
+  orders Order[]
+}
+
+// Registro MÍNIMO de verificación de edad. Nunca almacena el documento de identidad ni
+// datos biométricos — ver sección 8 del documento de arquitectura (LEGAL REVIEW REQUIRED).
+model AgeVerification {
+  id         String                 @id @default(uuid())
+  userId     String                 @unique
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified   Boolean                @default(false)
+  method     AgeVerificationMethod  @default(SELF_DECLARED)
+  verifiedAt DateTime?
+  createdAt  DateTime               @default(now())
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String? // "Casa", "Airbnb", "Oficina"
+  latitude   Float
+  longitude  Float
+  line1      String
+  reference  String?
+  city       String
+  province   String
+  postalCode String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  orders Order[]
+
+  @@index([userId])
+}
+
+// ---------- Merchants & catalog ----------
+
+model Merchant {
+  id           String         @id @default(uuid())
+  userId       String         @unique
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String         @unique
+  logoUrl      String?
+  rating       Float          @default(0)
+  status       MerchantStatus @default(PENDING_APPROVAL)
+  commissionPct Float         @default(15) // override del default global si aplica
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  locations       MerchantLocation[]
+  offers          ProductOffer[]
+  orders          Order[]
+  reviews         Review[]
+  promotions      Promotion[]
+
+  @@index([status])
+}
+
+model MerchantLocation {
+  id             String        @id @default(uuid())
+  merchantId     String
+  merchant       Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  latitude       Float
+  longitude      Float
+  address        String
+  deliveryZoneId String?
+  deliveryZone   DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+  openHours      Json? // { mon: ["10:00-22:00"], ... } — estructura libre para MVP
+  isOpen         Boolean       @default(true)
+
+  @@index([deliveryZoneId])
+}
+
+model Category {
+  id                      String    @id @default(uuid())
+  slug                    String    @unique
+  name                    String
+  emoji                   String?
+  requiresAgeVerification Boolean   @default(false)
+  parentId                String?
+  parent                  Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children                Category[] @relation("CategoryTree")
+
+  products Product[]
+}
+
+// Catálogo maestro: nombre, marca, atributos de restricción. NO tiene precio ni inventario.
+model Product {
+  id                      String    @id @default(uuid())
+  slug                    String    @unique
+  name                    String
+  brand                   String
+  description             String
+  categoryId              String
+  category                Category  @relation(fields: [categoryId], references: [id])
+  images                  String[]
+  ageRestricted           Boolean   @default(false)
+  requiresAgeVerification Boolean   @default(false)
+  alcoholType             String?
+  nicotineProduct         Boolean   @default(false)
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  offers ProductOffer[]
+
+  @@index([categoryId])
+  @@index([brand])
+}
+
+// La oferta comercial de un Product por parte de un Merchant específico: precio, inventario,
+// disponibilidad. Un mismo Product puede tener muchas ProductOffer.
+model ProductOffer {
+  id               String    @id @default(uuid())
+  productId        String
+  product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  merchantId       String
+  merchant         Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  sku              String?
+  barcode          String?
+  price            Decimal   @db.Decimal(10, 2)
+  compareAtPrice   Decimal?  @db.Decimal(10, 2)
+  availableForDelivery Boolean @default(true)
+  isAvailable      Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  inventory  Inventory?
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@unique([productId, merchantId])
+  @@index([merchantId])
+}
+
+model Inventory {
+  id             String       @id @default(uuid())
+  productOfferId String       @unique
+  productOffer   ProductOffer @relation(fields: [productOfferId], references: [id], onDelete: Cascade)
+  quantity       Int          @default(0)
+  lowStockAlert  Int          @default(5)
+  updatedAt      DateTime     @updatedAt
+}
+
+// ---------- Cart & orders ----------
+
+// MVP: un Cart pertenece a un solo merchant (checkout single-merchant, sección 30/9 del spec).
+model Cart {
+  id                String          @id @default(uuid())
+  customerProfileId String
+  customerProfile   CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+  merchantId        String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  items CartItem[]
+
+  @@index([customerProfileId])
+}
+
+model CartItem {
+  id             String       @id @default(uuid())
+  cartId         String
+  cart           Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productOfferId String
+  productOffer   ProductOffer @relation(fields: [productOfferId], references: [id])
+  quantity       Int          @default(1)
+
+  @@unique([cartId, productOfferId])
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  code              String      @unique // ej. DU-10293
+  customerProfileId String
+  customerProfile   CustomerProfile @relation(fields: [customerProfileId], references: [id])
+  merchantId        String
+  merchant          Merchant    @relation(fields: [merchantId], references: [id])
+  addressId         String
+  address           Address     @relation(fields: [addressId], references: [id])
+  status            OrderStatus @default(ORDER_PLACED)
+  subtotal          Decimal     @db.Decimal(10, 2)
+  deliveryFee       Decimal     @db.Decimal(10, 2)
+  serviceFee        Decimal     @db.Decimal(10, 2)
+  discount          Decimal     @db.Decimal(10, 2) @default(0)
+  total             Decimal     @db.Decimal(10, 2)
+  requiresAgeCheckAtDelivery Boolean @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  items    OrderItem[]
+  payment  Payment?
+  delivery Delivery?
+  reviews  Review[]
+
+  @@index([merchantId])
+  @@index([customerProfileId])
+  @@index([status])
+}
+
+model OrderItem {
+  id             String       @id @default(uuid())
+  orderId        String
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productOfferId String
+  productOffer   ProductOffer @relation(fields: [productOfferId], references: [id])
+  productName    String // snapshot al momento de la compra
+  unitPrice      Decimal      @db.Decimal(10, 2) // snapshot al momento de la compra
+  quantity       Int
+}
+
+// Desacoplado de un proveedor específico — ver interfaz PaymentProvider (sección 9/27 del spec).
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  providerRef   String? // id de transacción del proveedor externo (Azul, CardNET, Stripe...)
+  amount        Decimal       @db.Decimal(10, 2)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+// ---------- Delivery ----------
+
+model DeliveryZone {
+  id               String   @id @default(uuid())
+  name             String
+  baseFee          Decimal  @db.Decimal(10, 2)
+  pricePerKm       Decimal  @db.Decimal(10, 2)
+  estimatedMinutes Int
+  polygon          Json? // geofence en GeoJSON — se define al integrar mapas reales
+
+  merchantLocations MerchantLocation[]
+}
+
+model Driver {
+  id           String      @id @default(uuid())
+  userId       String      @unique
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  phone        String
+  photoUrl     String?
+  vehicleType  VehicleType @default(MOTORCYCLE)
+  vehiclePlate String?
+  isActive     Boolean     @default(true) // "disponible ahora" — lo controla el propio driver desde su perfil
+  rating       Float       @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  deliveries Delivery[]
+  reviews    Review[]
+}
+
+model Delivery {
+  id         String    @id @default(uuid())
+  orderId    String    @unique
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverId   String?
+  driver     Driver?   @relation(fields: [driverId], references: [id])
+  assignedAt DateTime?
+  pickedUpAt DateTime?
+  deliveredAt DateTime?
+
+  @@index([driverId])
+}
+
+// ---------- Growth features (arquitectura lista, no todas activas en MVP) ----------
+
+model Promotion {
+  id             String        @id @default(uuid())
+  type           PromotionType
+  merchantId     String?
+  merchant       Merchant?     @relation(fields: [merchantId], references: [id])
+  categoryId     String?
+  productId      String?
+  startDate      DateTime
+  endDate        DateTime
+  minimumOrder   Decimal?      @db.Decimal(10, 2)
+  maximumDiscount Decimal?     @db.Decimal(10, 2)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+}
+
+model Review {
+  id         String    @id @default(uuid())
+  orderId    String
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User      @relation("ReviewAuthor", fields: [authorId], references: [id])
+  merchantId String?
+  merchant   Merchant? @relation(fields: [merchantId], references: [id])
+  driverId   String?
+  driver     Driver?   @relation(fields: [driverId], references: [id])
+  rating     Int // 1–5
+  comment    String?
+  isModerated Boolean  @default(false)
+  createdAt  DateTime  @default(now())
+
+  @@index([merchantId])
+  @@index([driverId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   String // "email" | "sms" | "whatsapp" | "push" — abierto para no acoplar a un proveedor
+  event     String // "order_placed", "order_delivered", etc.
+  payload   Json?
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
