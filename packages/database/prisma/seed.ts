@@ -104,7 +104,86 @@ type SeedProduct = {
   basePrice: number;
   alcoholType?: string;
   nicotineProduct?: boolean;
+  imageKey?: keyof typeof PRODUCT_IMAGES;
 };
+
+// Fotos reales (Wikimedia Commons, licencia libre — sin API key) por marca/producto. Varios
+// productos de la misma marca comparten imagen (ej. las 4 variantes de Brugal). Cuando no se
+// encontró una foto real fiable sin mostrar otra marca o algo irrelevante (Bermúdez, Santa Rita),
+// se deja sin `imageKey` a propósito: el UI ya cae a un emoji de placeholder en ese caso.
+const PRODUCT_IMAGES = {
+  brugal: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Ron_Brugal.jpg",
+  barcelo:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Ron_Barcel%C3%B3_A%C3%B1ejo.png/500px-Ron_Barcel%C3%B3_A%C3%B1ejo.png",
+  matusalem:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Matusalem_Extra_Anejo.jpg/500px-Matusalem_Extra_Anejo.jpg",
+  jwRed:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dd/Johnnie_Walker_Red_Label.jpg/960px-Johnnie_Walker_Red_Label.jpg",
+  jwBlack:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Johnnie_Walker_Black_Label.jpg/960px-Johnnie_Walker_Black_Label.jpg",
+  buchanans:
+    "https://upload.wikimedia.org/wikipedia/commons/7/70/Bottle%2C_whisky_%28AM_1482-1%29.jpg",
+  chivas:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Chivas_regal_12yo.jpg/960px-Chivas_regal_12yo.jpg",
+  absolut:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Absolut_Vodka_01.jpg/960px-Absolut_Vodka_01.jpg",
+  smirnoff:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Smirnoff_Red_Label_8213.jpg/960px-Smirnoff_Red_Label_8213.jpg",
+  cuervo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Jose-Cuervo-logo.jpg",
+  donJulio: "https://upload.wikimedia.org/wikipedia/commons/8/80/Tequila_Don_Julio.jpg",
+  casillero:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Casillero_del_Diablo_wine.jpg/960px-Casillero_del_Diablo_wine.jpg",
+  trapiche:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Trapiche_Oak_Cask_malbec.jpg/960px-Trapiche_Oak_Cask_malbec.jpg",
+  freixenet:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Freixenet_Cordon_Negro_Cava_%288600473487%29.jpg/960px-Freixenet_Cordon_Negro_Cava_%288600473487%29.jpg",
+  martiniAsti:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/Martini_asti.jpg/960px-Martini_asti.jpg",
+  presidente:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Presidente-Bier.jpg/960px-Presidente-Bier.jpg",
+  bohemia:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Bohemia_Clasica.JPG/960px-Bohemia_Clasica.JPG",
+  corona:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Corona_Extra_beer_bottle_%282019%29.png/500px-Corona_Extra_beer_bottle_%282019%29.png",
+  heineken:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Heineken_beer_tray.JPG/960px-Heineken_beer_tray.JPG",
+  marlboroRed:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Marlboro_red_pack_front_NZ.jpg/960px-Marlboro_red_pack_front_NZ.jpg",
+  marlboroGold:
+    "https://upload.wikimedia.org/wikipedia/commons/b/bf/Pack_de_20_Marlboro_Gold_KS.jpg",
+  vape: "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Vape_Pen_-_E-Cigarette_%2824982640784%29.jpg/960px-Vape_Pen_-_E-Cigarette_%2824982640784%29.jpg",
+  iceBag:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Ice_cube_bag_01.jpg/960px-Ice_cube_bag_01.jpg",
+  cocaCola:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/15-09-26-RalfR-WLC-0098_-_Coca-Cola_glass_bottle_%28Germany%29.jpg/960px-15-09-26-RalfR-WLC-0098_-_Coca-Cola_glass_bottle_%28Germany%29.jpg",
+  cocaColaZero:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Coca-Cola_Zero_bottle.JPG/960px-Coca-Cola_Zero_bottle.JPG",
+  sprite:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/Sprite_Zero_Sugar_1.jpg/960px-Sprite_Zero_Sugar_1.jpg",
+  canadaDry:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/Canada_Dry_ginger_ale_bottles.jpg/960px-Canada_Dry_ginger_ale_bottles.jpg",
+  schweppes:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Schweppes_Indian_Tonic_Water_%28front%29.jpg/960px-Schweppes_Indian_Tonic_Water_%28front%29.jpg",
+  bottledWater:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Water_bottle_%2813779%29.jpg/960px-Water_bottle_%2813779%29.jpg",
+  doritos:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Nachos-cheese.jpg/960px-Nachos-cheese.jpg",
+  pringles:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Pringles_Paprika_reflection.JPG/960px-Pringles_Paprika_reflection.JPG",
+  peanuts:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Peanuts_in_a_bowl..jpg/960px-Peanuts_in_a_bowl..jpg",
+  chicharrones:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Chicharon.jpg/960px-Chicharon.jpg",
+  plantainChips:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Baked_Plantain_Chips.jpg/960px-Baked_Plantain_Chips.jpg",
+  plasticCups:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/File-White_plastic_drinking_cup%2C_3_12_oz_size-Printed_in_red_letters_on_both_sides-_LAMAR_BATH_HOUSE_%2806186cd5-edbb-4998-a360-bcf988fcd7c7%29.jpg/960px-File-White_plastic_drinking_cup%2C_3_12_oz_size-Printed_in_red_letters_on_both_sides-_LAMAR_BATH_HOUSE_%2806186cd5-edbb-4998-a360-bcf988fcd7c7%29.jpg",
+  cooler:
+    "https://upload.wikimedia.org/wikipedia/commons/4/47/Rubbermaid_DuraChill_Cooler_-_Ice_Chest_%282613253830%29.jpg",
+  napkins: "https://upload.wikimedia.org/wikipedia/commons/1/14/Kleenex.jpg",
+  balloons:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Balloon_man.JPG/960px-Balloon_man.JPG",
+} as const;
 
 const PRODUCTS: SeedProduct[] = [
   // Ron
@@ -114,6 +193,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 650,
     alcoholType: "ron",
+    imageKey: "brugal",
   },
   {
     name: "Brugal Extra Viejo 750ml",
@@ -121,6 +201,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 950,
     alcoholType: "ron",
+    imageKey: "brugal",
   },
   {
     name: "Brugal 1888 750ml",
@@ -128,6 +209,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 1850,
     alcoholType: "ron",
+    imageKey: "brugal",
   },
   {
     name: "Brugal Leyenda 750ml",
@@ -135,6 +217,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 3200,
     alcoholType: "ron",
+    imageKey: "brugal",
   },
   {
     name: "Barceló Imperial 750ml",
@@ -142,6 +225,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 1450,
     alcoholType: "ron",
+    imageKey: "barcelo",
   },
   {
     name: "Barceló Gran Añejo 750ml",
@@ -149,6 +233,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 780,
     alcoholType: "ron",
+    imageKey: "barcelo",
   },
   {
     name: "Bermúdez 8 Años 750ml",
@@ -156,6 +241,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 890,
     alcoholType: "ron",
+    // Sin imageKey a propósito — ver comentario en PRODUCT_IMAGES.
   },
   {
     name: "Ron Matusalem Platino 750ml",
@@ -163,6 +249,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "ron",
     basePrice: 720,
     alcoholType: "ron",
+    imageKey: "matusalem",
   },
 
   // Whisky
@@ -172,6 +259,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "whisky",
     basePrice: 1650,
     alcoholType: "whisky",
+    imageKey: "jwRed",
   },
   {
     name: "Johnnie Walker Black Label 750ml",
@@ -179,6 +267,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "whisky",
     basePrice: 2950,
     alcoholType: "whisky",
+    imageKey: "jwBlack",
   },
   {
     name: "Buchanan's Deluxe 750ml",
@@ -186,6 +275,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "whisky",
     basePrice: 2400,
     alcoholType: "whisky",
+    imageKey: "buchanans",
   },
   {
     name: "Chivas Regal 12 750ml",
@@ -193,6 +283,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "whisky",
     basePrice: 2750,
     alcoholType: "whisky",
+    imageKey: "chivas",
   },
 
   // Vodka
@@ -202,6 +293,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vodka",
     basePrice: 1350,
     alcoholType: "vodka",
+    imageKey: "absolut",
   },
   {
     name: "Smirnoff Red 750ml",
@@ -209,6 +301,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vodka",
     basePrice: 950,
     alcoholType: "vodka",
+    imageKey: "smirnoff",
   },
 
   // Tequila
@@ -218,6 +311,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "tequila",
     basePrice: 1550,
     alcoholType: "tequila",
+    imageKey: "cuervo",
   },
   {
     name: "Don Julio Blanco 750ml",
@@ -225,6 +319,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "tequila",
     basePrice: 3400,
     alcoholType: "tequila",
+    imageKey: "donJulio",
   },
 
   // Vinos
@@ -234,6 +329,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vinos",
     basePrice: 890,
     alcoholType: "vino",
+    imageKey: "casillero",
   },
   {
     name: "Santa Rita 120 Merlot 750ml",
@@ -241,6 +337,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vinos",
     basePrice: 750,
     alcoholType: "vino",
+    // Sin imageKey a propósito — ver comentario en PRODUCT_IMAGES.
   },
   {
     name: "Trapiche Malbec 750ml",
@@ -248,6 +345,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vinos",
     basePrice: 820,
     alcoholType: "vino",
+    imageKey: "trapiche",
   },
 
   // Espumantes
@@ -257,6 +355,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "espumantes",
     basePrice: 1150,
     alcoholType: "espumante",
+    imageKey: "freixenet",
   },
   {
     name: "Martini Asti 750ml",
@@ -264,6 +363,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "espumantes",
     basePrice: 1350,
     alcoholType: "espumante",
+    imageKey: "martiniAsti",
   },
 
   // Cervezas
@@ -273,6 +373,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "cervezas",
     basePrice: 380,
     alcoholType: "cerveza",
+    imageKey: "presidente",
   },
   {
     name: "Presidente Light 12oz (six pack)",
@@ -280,6 +381,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "cervezas",
     basePrice: 380,
     alcoholType: "cerveza",
+    imageKey: "presidente",
   },
   {
     name: "Bohemia Botella 12oz (six pack)",
@@ -287,6 +389,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "cervezas",
     basePrice: 420,
     alcoholType: "cerveza",
+    imageKey: "bohemia",
   },
   {
     name: "Corona Extra 12oz (six pack)",
@@ -294,6 +397,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "cervezas",
     basePrice: 590,
     alcoholType: "cerveza",
+    imageKey: "corona",
   },
   {
     name: "Heineken Lata 12oz (six pack)",
@@ -301,6 +405,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "cervezas",
     basePrice: 620,
     alcoholType: "cerveza",
+    imageKey: "heineken",
   },
 
   // Tabaco / vape
@@ -310,6 +415,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "tabaco",
     basePrice: 320,
     nicotineProduct: true,
+    imageKey: "marlboroRed",
   },
   {
     name: "Marlboro Gold Cajetilla",
@@ -317,6 +423,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "tabaco",
     basePrice: 320,
     nicotineProduct: true,
+    imageKey: "marlboroGold",
   },
   {
     name: "Vaper desechable sabor menta",
@@ -324,6 +431,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vape",
     basePrice: 950,
     nicotineProduct: true,
+    imageKey: "vape",
   },
   {
     name: "Vaper desechable sabor frutas",
@@ -331,6 +439,7 @@ const PRODUCTS: SeedProduct[] = [
     category: "vape",
     basePrice: 950,
     nicotineProduct: true,
+    imageKey: "vape",
   },
 
   // Hielo
@@ -339,12 +448,14 @@ const PRODUCTS: SeedProduct[] = [
     brand: "DeUna",
     category: "hielo",
     basePrice: 150,
+    imageKey: "iceBag",
   },
   {
     name: "Bolsa de Hielo 2kg",
     brand: "DeUna",
     category: "hielo",
     basePrice: 80,
+    imageKey: "iceBag",
   },
 
   // Mixers
@@ -353,31 +464,42 @@ const PRODUCTS: SeedProduct[] = [
     brand: "Coca-Cola",
     category: "mixers",
     basePrice: 130,
+    imageKey: "cocaCola",
   },
   {
     name: "Coca-Cola Zero 2L",
     brand: "Coca-Cola",
     category: "mixers",
     basePrice: 130,
+    imageKey: "cocaColaZero",
   },
-  { name: "Sprite 2L", brand: "Sprite", category: "mixers", basePrice: 125 },
+  {
+    name: "Sprite 2L",
+    brand: "Sprite",
+    category: "mixers",
+    basePrice: 125,
+    imageKey: "sprite",
+  },
   {
     name: "Ginger Ale 1L",
     brand: "Canada Dry",
     category: "mixers",
     basePrice: 110,
+    imageKey: "canadaDry",
   },
   {
     name: "Agua Tónica Schweppes 1L",
     brand: "Schweppes",
     category: "mixers",
     basePrice: 140,
+    imageKey: "schweppes",
   },
   {
     name: "Agua Cristal 1L (six pack)",
     brand: "Cristal",
     category: "mixers",
     basePrice: 180,
+    imageKey: "bottledWater",
   },
 
   // Snacks
@@ -386,30 +508,35 @@ const PRODUCTS: SeedProduct[] = [
     brand: "Doritos",
     category: "snacks",
     basePrice: 150,
+    imageKey: "doritos",
   },
   {
     name: "Pringles Original 149g",
     brand: "Pringles",
     category: "snacks",
     basePrice: 280,
+    imageKey: "pringles",
   },
   {
     name: "Maní Salado 200g",
     brand: "La Famosa",
     category: "snacks",
     basePrice: 110,
+    imageKey: "peanuts",
   },
   {
     name: "Chicharrones de Cerdo 100g",
     brand: "La Famosa",
     category: "snacks",
     basePrice: 130,
+    imageKey: "chicharrones",
   },
   {
     name: "Platanutres 150g",
     brand: "Yummies",
     category: "snacks",
     basePrice: 100,
+    imageKey: "plantainChips",
   },
 
   // Fiestas
@@ -418,24 +545,28 @@ const PRODUCTS: SeedProduct[] = [
     brand: "DeUna",
     category: "fiestas",
     basePrice: 150,
+    imageKey: "plasticCups",
   },
   {
     name: "Hielera Portátil 24qt",
     brand: "Genérico",
     category: "fiestas",
     basePrice: 1200,
+    imageKey: "cooler",
   },
   {
     name: "Servilletas (paq. 100)",
     brand: "Genérico",
     category: "fiestas",
     basePrice: 90,
+    imageKey: "napkins",
   },
   {
     name: "Globos de Colores (paq. 50)",
     brand: "Genérico",
     category: "fiestas",
     basePrice: 120,
+    imageKey: "balloons",
   },
 ];
 
@@ -589,16 +720,21 @@ async function main() {
     const slug = slugify(`${p.brand}-${p.name}`);
     const rule = CATEGORY_RULES[p.category];
 
+    const images = p.imageKey ? [PRODUCT_IMAGES[p.imageKey]] : [];
+
     const product = await prisma.product.upsert({
       where: { slug },
-      update: {},
+      // `update` sí toca `images`: el seed corrió antes sin fotos, y necesitamos que una segunda
+      // corrida se las agregue a los productos que ya existían (upsert con `update: {}` no lo
+      // haría — se quedaría con el `images: []` original).
+      update: { images },
       create: {
         slug,
         name: p.name,
         brand: p.brand,
         description: `${p.name} — disponible para delivery en Santo Domingo a través de DeUna.`,
         categoryId: categoryRecords.get(p.category)!,
-        images: [],
+        images,
         ageRestricted: rule.requiresAgeVerification,
         requiresAgeVerification: rule.requiresAgeVerification,
         alcoholType: p.alcoholType ?? null,

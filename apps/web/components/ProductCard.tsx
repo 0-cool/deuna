@@ -11,7 +11,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
       <div className="flex aspect-square items-center justify-center bg-ink text-4xl">
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+          <img src={product.imageUrl} alt={product.name} className="h-[350px] w-full object-cover" />
         ) : (
           <span aria-hidden>🍾</span>
         )}
