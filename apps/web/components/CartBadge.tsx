@@ -10,12 +10,12 @@ export function CartBadge() {
   return (
     <Link
       href="/carrito"
-      className="relative flex items-center gap-2 rounded-full border border-ink-border bg-ink-soft px-4 py-2 text-sm font-medium text-paper transition hover:border-teal"
+      className="relative flex h-10 w-10 items-center justify-center rounded-full border border-ink-border bg-ink-soft text-paper transition hover:border-teal"
+      aria-label="Carrito"
     >
       <span aria-hidden>🛒</span>
-      <span className="hidden sm:inline">Carrito</span>
       {count > 0 && (
-        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-coral px-1 text-xs font-bold text-ink">
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-coral px-1 text-[11px] font-bold text-ink">
           {count}
         </span>
       )}

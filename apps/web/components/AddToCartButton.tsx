@@ -23,10 +23,7 @@ export function AddToCartButton(props: Props) {
   const [added, setAdded] = useState(false);
   const router = useRouter();
 
-  function attemptAdd(force = false) {
-    if (force) {
-      // El caller ya limpió el carrito o confirmó reemplazarlo.
-    }
+  function attemptAdd(replace = false) {
     const result = addItem(
       {
         offerId: props.offerId,
@@ -39,7 +36,8 @@ export function AddToCartButton(props: Props) {
         quantity,
         ageRestricted: props.ageRestricted,
       },
-      props.deliveryFee
+      props.deliveryFee,
+      { replace },
     );
 
     if (result === "blocked_other_merchant") {
@@ -58,6 +56,15 @@ export function AddToCartButton(props: Props) {
           comercio. ¿Vaciar el carrito y agregar este producto?
         </p>
         <div className="mt-2 flex gap-2">
+          <button
+            onClick={() => {
+              attemptAdd(true);
+              setConfirming(false);
+            }}
+            className="rounded-md bg-teal px-3 py-1.5 text-paper"
+          >
+            Vaciar y agregar
+          </button>
           <button
             onClick={() => {
               router.push("/carrito");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthEntryButton } from "./AuthModal";
 
 export function Footer() {
   return (
@@ -37,6 +38,11 @@ export function Footer() {
             <div>
               <p className="font-medium text-paper/80">Login</p>
               <ul className="mt-2 space-y-1">
+                <li>
+                  <AuthEntryButton className="hover:text-teal-light hover:underline">
+                    Cliente
+                  </AuthEntryButton>
+                </li>
                 <li>
                   <Link href="/merchant/login" className="hover:text-teal-light hover:underline">
                     Tienda
