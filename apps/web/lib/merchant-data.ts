@@ -238,7 +238,7 @@ export async function getMerchantDashboard(merchantId: string) {
     value: 0,
   }));
   todayOrders.forEach((order, index) => {
-    const hour = clustered ? hourSlots[index % hourSlots.length] : order.createdAt.getHours();
+    const hour = clustered ? (hourSlots[index % hourSlots.length] ?? 12) : order.createdAt.getHours();
     const slot = hourSlots.reduce((best, current) =>
       Math.abs(current - hour) < Math.abs(best - hour) ? current : best,
     );
@@ -374,7 +374,7 @@ function displayPaymentMethod(orderId: string, method?: string | null) {
   if (method === "TRANSFER") return "DeUna Pay";
   if (method === "CARD") return orderId.charCodeAt(0) % 2 === 0 ? "Tarjeta de crédito" : "Tarjeta de débito";
   const options = ["Tarjeta de crédito", "Tarjeta de débito", "Efectivo", "DeUna Pay"] as const;
-  return options[orderId.charCodeAt(orderId.length - 1) % options.length];
+  return options[orderId.charCodeAt(orderId.length - 1) % options.length] ?? "Efectivo";
 }
 
 export async function getMerchantFinance(merchantId: string) {

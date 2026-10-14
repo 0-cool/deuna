@@ -81,11 +81,12 @@ export function MerchantFinanceClient({
       const completedNet = transactions
         .filter((item) => item.status === "completed")
         .reduce((sum, item) => sum + item.net, 0);
-      const seeded: MerchantPayout[] = [
+      const candidates: MerchantPayout[] = [
         { id: "p1", amount: Math.round(completedNet * 0.18), status: "completed", at: new Date(today.getFullYear(), today.getMonth(), 15).toISOString() },
         { id: "p2", amount: Math.round(completedNet * 0.12), status: "completed", at: new Date(today.getFullYear(), today.getMonth(), 8).toISOString() },
         { id: "p3", amount: Math.round(completedNet * 0.1), status: "completed", at: new Date(today.getFullYear(), today.getMonth() - 1, 25).toISOString() },
-      ].filter((item) => item.amount > 0);
+      ];
+      const seeded = candidates.filter((item) => item.amount > 0);
       writePayouts(merchantId, seeded);
       setPayouts(seeded);
     }

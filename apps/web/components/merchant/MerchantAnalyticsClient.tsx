@@ -97,13 +97,14 @@ export function MerchantAnalyticsClient({ orders }: { orders: AnalyticsOrder[] }
         const wanted = hourFilter === "weekday" ? day >= 1 && day <= 5 : day === 0 || day === 6;
         if (!wanted) return;
       }
-      const hour = clustered ? slots[index % slots.length] : new Date(order.createdAt).getHours();
+      const hour = clustered ? (slots[index % slots.length] ?? 12) : new Date(order.createdAt).getHours();
       const slot = slots.reduce((best, current) => (Math.abs(current - hour) < Math.abs(best - hour) ? current : best));
-      counts[slots.indexOf(slot)] += 1;
+      const slotIndex = slots.indexOf(slot);
+      counts[slotIndex] = (counts[slotIndex] ?? 0) + 1;
     });
     return slots.map((hour, index) => ({
       label: hour === 24 || hour === 0 ? "12 a.m." : hour === 12 ? "12 p.m." : hour > 12 ? `${hour - 12} p.m.` : `${hour} a.m.`,
-      value: counts[index],
+      value: counts[index] ?? 0,
     }));
   }, [ranged, hourFilter]);
 
@@ -132,7 +133,7 @@ export function MerchantAnalyticsClient({ orders }: { orders: AnalyticsOrder[] }
     const map = new Map<string, number>();
     if (uniqueZones.size <= 1) {
       ranged.forEach((order, index) => {
-        const name = SD_ZONES[order.id.charCodeAt(index % order.id.length) % SD_ZONES.length];
+        const name = SD_ZONES[order.id.charCodeAt(index % order.id.length) % SD_ZONES.length] ?? order.zone;
         map.set(name, (map.get(name) ?? 0) + 1);
       });
     } else {

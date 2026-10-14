@@ -21,7 +21,7 @@ export function SalesLineChart({
       <svg viewBox={`0 0 ${width} ${height}`} className="h-44 w-full">
         <path d={path} fill="none" stroke="#FF5C4D" strokeWidth="3" strokeLinecap="round" />
         {coords.map((point, index) => (
-          <circle key={points[index].label} cx={point.x} cy={point.y} r="4" fill="#FF5C4D" />
+          <circle key={points[index]?.label ?? index} cx={point.x} cy={point.y} r="4" fill="#FF5C4D" />
         ))}
       </svg>
       <div className="mt-1 flex justify-between text-[11px] capitalize text-ink/40">

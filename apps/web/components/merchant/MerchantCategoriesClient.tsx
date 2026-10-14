@@ -106,7 +106,7 @@ export function MerchantCategoriesClient({
     const extras = Object.values(prefs).filter(
       (pref) => pref.added && !categories.some((category) => category.slug === pref.slug),
     );
-    const base = [
+    const base: Row[] = [
       ...categories.map((category, index) => ({
         slug: category.slug,
         name: category.name,
@@ -216,6 +216,7 @@ export function MerchantCategoriesClient({
     if (index < 0 || target < 0 || target >= ordered.length) return;
     const a = ordered[index];
     const b = ordered[target];
+    if (!a || !b) return;
     persist({
       ...prefs,
       [a.slug]: {

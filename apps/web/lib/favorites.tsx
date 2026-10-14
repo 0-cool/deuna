@@ -23,7 +23,7 @@ function toFavoriteProduct(product: ProductSummary | FavoriteProduct): FavoriteP
     name: product.name,
     brand: product.brand,
     imageUrl: product.imageUrl,
-    images: "images" in product ? product.images : product.imageUrl ? [product.imageUrl] : [],
+    images: product.images?.length ? product.images : product.imageUrl ? [product.imageUrl] : [],
     ageRestricted: product.ageRestricted,
     lowestPrice: product.lowestPrice,
   };

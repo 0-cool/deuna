@@ -123,6 +123,7 @@ export function MerchantHoursClient({
     if (index === 0) return;
     const prev = WEEK_DAYS[index - 1];
     const current = WEEK_DAYS[index];
+    if (!prev || !current) return;
     updateDay(current.key, hours.weekly[prev.key]);
   }
 

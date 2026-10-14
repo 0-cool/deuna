@@ -89,11 +89,11 @@ export function formatTime12(value: string) {
 }
 
 export function dayKeyFromDate(date = new Date()): DayKey {
-  return WEEK_DAYS[(date.getDay() + 6) % 7].key;
+  return WEEK_DAYS[(date.getDay() + 6) % 7]!.key;
 }
 
 function toMinutes(value: string) {
-  const [hour, minute] = value.split(":").map(Number);
+  const [hour = 0, minute = 0] = value.split(":").map(Number);
   if (hour === 0 && minute === 0) return 24 * 60;
   return hour * 60 + minute;
 }
