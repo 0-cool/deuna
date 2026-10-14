@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -200,7 +200,7 @@ model Product {
   description             String
   categoryId              String
   category                Category  @relation(fields: [categoryId], references: [id])
-  images                  Json     @default("[]")
+  images                  String[]
   ageRestricted           Boolean   @default(false)
   requiresAgeVerification Boolean   @default(false)
   alcoholType             String?
