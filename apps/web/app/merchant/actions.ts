@@ -137,6 +137,109 @@ export async function updateOfferAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/merchant/productos");
+  revalidatePath("/merchant/inventario");
+}
+
+export async function adjustStockAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const offerId = String(formData.get("offerId"));
+  const delta = Number(formData.get("delta"));
+  if (!Number.isFinite(delta) || delta === 0) return;
+
+  const offer = await prisma.productOffer.findUnique({
+    where: { id: offerId },
+    include: { inventory: true },
+  });
+  if (!offer || offer.merchantId !== merchant.id) {
+    throw new Error("Producto no encontrado para esta tienda.");
+  }
+
+  const next = Math.max(0, (offer.inventory?.quantity ?? 0) + delta);
+  await prisma.inventory.upsert({
+    where: { productOfferId: offerId },
+    update: { quantity: next },
+    create: { productOfferId: offerId, quantity: next },
+  });
+
+  revalidatePath("/merchant/inventario");
+  revalidatePath("/merchant/productos");
+  revalidatePath("/merchant");
+}
+
+export async function bulkAdjustStockAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const ids = String(formData.get("offerIds") ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  const mode = String(formData.get("mode") ?? "add");
+  const amount = Number(formData.get("amount"));
+  if (ids.length === 0 || !Number.isFinite(amount)) return;
+
+  const offers = await prisma.productOffer.findMany({
+    where: { id: { in: ids }, merchantId: merchant.id },
+    include: { inventory: true },
+  });
+
+  await Promise.all(
+    offers.map((offer) => {
+      const current = offer.inventory?.quantity ?? 0;
+      const quantity = Math.max(0, mode === "set" ? amount : current + amount);
+      return prisma.inventory.upsert({
+        where: { productOfferId: offer.id },
+        update: { quantity },
+        create: { productOfferId: offer.id, quantity },
+      });
+    }),
+  );
+
+  revalidatePath("/merchant/inventario");
+  revalidatePath("/merchant/productos");
+}
+
+export async function updateLowStockAlertsAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const threshold = Number(formData.get("threshold"));
+  if (!Number.isFinite(threshold) || threshold < 0) return;
+
+  const offers = await prisma.productOffer.findMany({
+    where: { merchantId: merchant.id },
+    select: { id: true },
+  });
+
+  await Promise.all(
+    offers.map((offer) =>
+      prisma.inventory.upsert({
+        where: { productOfferId: offer.id },
+        update: { lowStockAlert: threshold },
+        create: { productOfferId: offer.id, quantity: 0, lowStockAlert: threshold },
+      }),
+    ),
+  );
+
+  revalidatePath("/merchant/inventario");
+}
+
+export async function toggleOfferAvailabilityAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const offerId = String(formData.get("offerId"));
+  const next = formData.get("next") === "1";
+
+  const offer = await prisma.productOffer.findUnique({
+    where: { id: offerId },
+  });
+  if (!offer || offer.merchantId !== merchant.id) {
+    throw new Error("Producto no encontrado para esta tienda.");
+  }
+
+  await prisma.productOffer.update({
+    where: { id: offerId },
+    data: { isAvailable: next },
+  });
+
+  revalidatePath("/merchant/productos");
+  revalidatePath("/merchant/inventario");
+  revalidatePath("/merchant");
 }
 
 // Crea un Product nuevo en el catálogo maestro junto con la oferta de este merchant. Usar solo
@@ -328,4 +431,93 @@ export async function deleteOfferAction(formData: FormData): Promise<void> {
 
   revalidatePath("/merchant/productos");
   redirect("/merchant/productos?notice=deleted");
+}
+
+export async function saveMerchantHoursAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const locationId = String(formData.get("locationId") ?? "");
+  const isOpen = formData.get("isOpen") === "1";
+  const raw = String(formData.get("hours") ?? "");
+
+  let hours: unknown = null;
+  try {
+    hours = JSON.parse(raw);
+  } catch {
+    return;
+  }
+
+  const location = locationId
+    ? await prisma.merchantLocation.findFirst({ where: { id: locationId, merchantId: merchant.id } })
+    : await prisma.merchantLocation.findFirst({ where: { merchantId: merchant.id } });
+
+  if (!location) return;
+
+  await prisma.merchantLocation.update({
+    where: { id: location.id },
+    data: { openHours: hours as object, isOpen },
+  });
+
+  revalidatePath("/merchant/horarios");
+  revalidatePath("/merchant");
+}
+
+export async function setMerchantOpenNowAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const locationId = String(formData.get("locationId") ?? "");
+  const isOpen = formData.get("isOpen") === "1";
+
+  const location = locationId
+    ? await prisma.merchantLocation.findFirst({ where: { id: locationId, merchantId: merchant.id } })
+    : await prisma.merchantLocation.findFirst({ where: { merchantId: merchant.id } });
+
+  if (!location) return;
+
+  await prisma.merchantLocation.update({
+    where: { id: location.id },
+    data: { isOpen },
+  });
+
+  revalidatePath("/merchant/horarios");
+  revalidatePath("/merchant");
+}
+
+export async function saveMerchantSettingsAction(formData: FormData): Promise<void> {
+  const merchant = await requireMerchant();
+  const name = String(formData.get("name") ?? "").trim();
+  const logoUrl = String(formData.get("logoUrl") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const locationId = String(formData.get("locationId") ?? "");
+  const isOpen = formData.get("isOpen") === "1";
+  const active = formData.get("active") === "1";
+
+  if (!name) return;
+
+  await prisma.merchant.update({
+    where: { id: merchant.id },
+    data: {
+      name,
+      logoUrl: logoUrl || null,
+      status: active ? "ACTIVE" : "SUSPENDED",
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: merchant.userId },
+    data: { phone: phone || null },
+  });
+
+  const location = locationId
+    ? await prisma.merchantLocation.findFirst({ where: { id: locationId, merchantId: merchant.id } })
+    : await prisma.merchantLocation.findFirst({ where: { merchantId: merchant.id } });
+
+  if (location && address) {
+    await prisma.merchantLocation.update({
+      where: { id: location.id },
+      data: { address, isOpen },
+    });
+  }
+
+  revalidatePath("/merchant/configuracion");
+  revalidatePath("/merchant");
 }

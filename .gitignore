@@ -7,3 +7,5 @@ dist/
 .DS_Store
 .turbo/
 packages/database/prisma/dev.db
+*.tsbuildinfo
+.claude/

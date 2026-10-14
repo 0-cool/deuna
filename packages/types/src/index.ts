@@ -45,6 +45,7 @@ export interface ProductOfferSummary {
   offerId: string;
   merchantId: string;
   merchantName: string;
+  merchantSlug: string;
   merchantLogoUrl: string | null;
   price: number;
   compareAtPrice: number | null;
@@ -56,17 +57,32 @@ export interface ProductOfferSummary {
   merchantRating: number;
 }
 
+export type FulfillmentType = "DELIVERY" | "PICKUP";
+
+export interface ProductQuickOffer {
+  offerId: string;
+  merchantId: string;
+  merchantName: string;
+  unitPrice: number;
+  deliveryFee: number;
+  inStock: boolean;
+  merchantIsOpen: boolean;
+}
+
 export interface ProductSummary {
   id: string;
   slug: string;
   name: string;
   brand: string;
   category: string;
+  categorySlug: string;
   imageUrl: string | null;
+  images: string[];
   ageRestricted: boolean;
   requiresAgeVerification: boolean;
   lowestPrice: number;
   offerCount: number;
+  quickOffer: ProductQuickOffer | null;
 }
 
 export interface ProductDetail extends ProductSummary {
@@ -98,6 +114,123 @@ export interface CartLineItem {
   unitPrice: number;
   quantity: number;
   ageRestricted: boolean;
+}
+
+export interface SavedLocation {
+  id: string;
+  label: string;
+  line1: string;
+  reference: string | null;
+  city: string;
+  zoneId: string;
+  lat: number | null;
+  lng: number | null;
+  isDefault: boolean;
+}
+
+export type SavedPaymentKind = "CARD" | "DEBIT" | "CASH" | "WALLET";
+
+export type SavedCardBrand = "visa" | "mastercard" | "other";
+
+export interface SavedPaymentMethod {
+  id: string;
+  kind: SavedPaymentKind;
+  brand: SavedCardBrand | null;
+  holderName: string;
+  last4: string | null;
+  expiry: string | null;
+  isDefault: boolean;
+  updatedAt: string;
+}
+
+export interface FavoriteMerchant {
+  id: string;
+  slug: string;
+  name: string;
+  logoUrl: string | null;
+  rating: number;
+  etaMinutes: number;
+  deliveryFee: number;
+}
+
+export interface FavoriteProduct {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  imageUrl: string | null;
+  images: string[];
+  ageRestricted: boolean;
+  lowestPrice: number;
+}
+
+export interface UsedCoupon {
+  id: string;
+  title: string;
+  usedAt: string;
+  savedAmount: number;
+  orderCode: string | null;
+}
+
+export interface NotificationPrefs {
+  email: boolean;
+  sms: boolean;
+  push: boolean;
+  orders: boolean;
+  promos: boolean;
+  news: boolean;
+  recommendations: boolean;
+  platform: boolean;
+  surveys: boolean;
+}
+
+export interface SavedCartRecord {
+  id: string;
+  name: string;
+  merchantId: string;
+  merchantName: string;
+  items: CartLineItem[];
+  deliveryFee: number;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface OrderChatMessage {
+  id: string;
+  from: "customer" | "driver";
+  text: string;
+  at: string;
+}
+
+export interface OrderRating {
+  orderStars: number;
+  driverStars: number;
+  comment: string;
+  at: string;
+}
+
+export interface StoredCustomerOrder {
+  code: string;
+  createdAt: string;
+  fulfillment: FulfillmentType;
+  merchantId: string;
+  merchantName: string;
+  merchantAddress: string | null;
+  items: CartLineItem[];
+  subtotal: number;
+  deliveryFee: number;
+  serviceFee: number;
+  total: number;
+  paymentMethod: PaymentMethod;
+  fullName: string;
+  phone: string;
+  address: string;
+  reference: string;
+  etaMinutes: number;
+  status: OrderStatus;
+  cancelledAt: string | null;
+  rating: OrderRating | null;
+  chat: OrderChatMessage[];
 }
 
 export interface CartSummary {

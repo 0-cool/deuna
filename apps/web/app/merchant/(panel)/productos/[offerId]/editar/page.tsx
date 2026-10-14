@@ -23,10 +23,10 @@ export default async function EditMerchantProductPage({
 
   return (
     <div>
-      <Link href="/merchant/productos" className="text-xs text-paper/50 hover:text-paper">
+      <Link href="/merchant/productos" className="text-xs text-ink/40 hover:text-ink">
         ← Volver a productos
       </Link>
-      <h1 className="mt-2 font-display text-2xl text-paper">Editar producto</h1>
+      <h1 className="mt-2 font-display text-2xl text-ink">Editar producto</h1>
 
       {locked && (
         <p className="mt-3 rounded-card border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-gold">
@@ -36,32 +36,32 @@ export default async function EditMerchantProductPage({
         </p>
       )}
 
-      <form action={updateProductAction} className="mt-6 grid gap-4 sm:grid-cols-2">
+      <form action={updateProductAction} className="mt-6 grid gap-4 rounded-2xl border border-ink/8 bg-white p-5 shadow-sm sm:grid-cols-2">
         <input type="hidden" name="offerId" value={offer.id} />
 
-        <label className="text-xs text-paper/60">
+        <label className="text-xs text-ink/55">
           Nombre
           <input
             name="name"
             defaultValue={offer.name}
             required
             disabled={locked}
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal disabled:opacity-50"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal disabled:opacity-50"
           />
         </label>
 
-        <label className="text-xs text-paper/60">
+        <label className="text-xs text-ink/55">
           Marca
           <input
             name="brand"
             defaultValue={offer.brand}
             required
             disabled={locked}
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal disabled:opacity-50"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal disabled:opacity-50"
           />
         </label>
 
-        <label className="text-xs text-paper/60 sm:col-span-2">
+        <label className="text-xs text-ink/55 sm:col-span-2">
           Descripción
           <textarea
             name="description"
@@ -69,18 +69,18 @@ export default async function EditMerchantProductPage({
             required
             rows={3}
             disabled={locked}
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal disabled:opacity-50"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal disabled:opacity-50"
           />
         </label>
 
-        <label className="text-xs text-paper/60">
+        <label className="text-xs text-ink/55">
           Categoría
           <select
             name="categorySlug"
             defaultValue={offer.categorySlug}
             required
             disabled={locked}
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal disabled:opacity-50"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal disabled:opacity-50"
           >
             {Object.values(CATEGORY_RULES).map((rule) => (
               <option key={rule.slug} value={rule.slug}>
@@ -90,18 +90,18 @@ export default async function EditMerchantProductPage({
           </select>
         </label>
 
-        <label className="text-xs text-paper/60">
+        <label className="text-xs text-ink/55">
           Imagen (URL)
           <input
             name="imageUrl"
             type="url"
             defaultValue={offer.imageUrl}
             disabled={locked}
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal disabled:opacity-50"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal disabled:opacity-50"
           />
         </label>
 
-        <label className="text-xs text-paper/60">
+        <label className="text-xs text-ink/55">
           Precio (RD$)
           <input
             name="price"
@@ -110,11 +110,11 @@ export default async function EditMerchantProductPage({
             step={1}
             defaultValue={offer.price}
             required
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal"
           />
         </label>
 
-        <label className="text-xs text-paper/60">
+        <label className="text-xs text-ink/55">
           Inventario
           <input
             name="quantity"
@@ -123,11 +123,11 @@ export default async function EditMerchantProductPage({
             step={1}
             defaultValue={offer.quantity}
             required
-            className="mt-1 block w-full rounded-lg border border-ink-border bg-ink px-3 py-2 text-sm text-paper outline-none focus:border-teal"
+            className="mt-1 block w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-teal"
           />
         </label>
 
-        <label className="flex items-center gap-2 text-xs text-paper/60">
+        <label className="flex items-center gap-2 text-xs text-ink/55">
           <input
             type="checkbox"
             name="isAvailable"

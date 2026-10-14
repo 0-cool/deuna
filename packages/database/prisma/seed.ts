@@ -720,7 +720,12 @@ async function main() {
     const slug = slugify(`${p.brand}-${p.name}`);
     const rule = CATEGORY_RULES[p.category];
 
-    const images = p.imageKey ? [PRODUCT_IMAGES[p.imageKey]] : [];
+    const extraImages = Object.values(PRODUCT_IMAGES)
+      .filter((url) => url !== (p.imageKey ? PRODUCT_IMAGES[p.imageKey] : ""))
+      .slice(i % 4, (i % 4) + 2);
+    const images = p.imageKey
+      ? [PRODUCT_IMAGES[p.imageKey], ...extraImages]
+      : extraImages;
 
     const product = await prisma.product.upsert({
       where: { slug },
@@ -787,10 +792,15 @@ async function main() {
   );
 
   // ---------- Cliente y pedidos de demostración (para poder probar el panel de merchant) ----------
+  const demoCustomerPassword = await bcrypt.hash(DEMO_MERCHANT_PASSWORD, 10);
   const demoUser = await prisma.user.upsert({
     where: { email: "cliente-demo@deuna.do" },
-    update: {},
-    create: { email: "cliente-demo@deuna.do", role: "CUSTOMER" },
+    update: { passwordHash: demoCustomerPassword },
+    create: {
+      email: "cliente-demo@deuna.do",
+      role: "CUSTOMER",
+      passwordHash: demoCustomerPassword,
+    },
   });
 
   const demoProfile = await prisma.customerProfile.upsert({
@@ -900,6 +910,9 @@ async function main() {
   );
   console.log(
     `Login de driver: cualquier correo @drivers.deuna.do (ej. carlos-perez@drivers.deuna.do) con contraseña "${DEMO_DRIVER_PASSWORD}".`,
+  );
+  console.log(
+    `Login de cliente: cliente-demo@deuna.do con contraseña "${DEMO_MERCHANT_PASSWORD}".`,
   );
 }
 
